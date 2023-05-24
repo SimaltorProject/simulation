@@ -3,6 +3,17 @@
 
 const PI = 3.14159265358979323846264338327950288;
 
+struct CustomMaterial {
+    color: vec4<f32>,
+};
+
+@group(1) @binding(0)
+var<uniform> material: CustomMaterial;
+@group(1) @binding(1)
+var<uniform> luminosity: f32;
+
+
+
 struct FragmentInput {
   @builtin(front_facing) is_front: bool,
   @builtin(position) frag_coord: vec4<f32>,
@@ -23,7 +34,8 @@ fn fragment(in: FragmentInput) -> @location(0) vec4<f32> {
 
   // TODO load from rust
   let brightness = 7.0;
-  var col = vec3(0.0,0.4,1.0) * brightness;
+  //var col = vec3(0.0,0.4,1.0) * brightness;
+  var col = material.color.xyz * luminosity;
   col = mix(vec3(0.0,0.0,0.0), col*alpha, glow);
 
   return vec4(col, 1.0);
