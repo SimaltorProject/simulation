@@ -1,11 +1,9 @@
 use crate::{
 	components::{AstronomicalObjectType, Mass},
-	materials,
-	types::GalacticGrid,
-	units,
+	materials, units,
 };
 use bevy::{math::DVec3, prelude::*};
-use big_space::{FloatingOrigin, FloatingOriginSettings};
+use big_space::FloatingOriginSettings;
 use rand::{Rng, SeedableRng};
 
 pub struct WorldGenPlugin;

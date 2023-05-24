@@ -4,7 +4,6 @@ use bevy::{
 	prelude::*,
 };
 use big_space::camera::CameraInput;
-//use bevy_flycam::{FlyCam, MovementSettings, NoCameraPlayerPlugin};
 use big_space::{camera::CameraController, FloatingOrigin, FloatingOriginPlugin};
 use types::GalacticGrid;
 
@@ -28,11 +27,6 @@ fn main() {
 		.add_plugin(FloatingOriginPlugin::<i64>::new(1_000.0, 1.0))
 		.add_plugin(big_space::debug::FloatingOriginDebugPlugin::<i64>::default())
 		.add_plugin(big_space::camera::CameraControllerPlugin::<i64>::default())
-		/* .add_plugin(NoCameraPlayerPlugin)
-		.insert_resource(MovementSettings {
-			sensitivity: 0.00015, // default: 0.00012
-			speed: 2.5e4,         // default: 12.0
-		})*/
 		.add_plugin(MaterialPlugin::<materials::Sun>::default())
 		.add_plugin(worldgen::WorldGenPlugin)
 		.add_system(grab_mouse)
