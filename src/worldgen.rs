@@ -1,8 +1,11 @@
 use crate::{
 	components::{AstronomicalObjectType, Mass},
 	materials,
+	types::GalacticGrid,
+	units,
 };
-use bevy::prelude::*;
+use bevy::{math::DVec3, prelude::*};
+use big_space::{FloatingOrigin, FloatingOriginSettings};
 use rand::{Rng, SeedableRng};
 
 pub struct WorldGenPlugin;
@@ -15,6 +18,7 @@ impl Plugin for WorldGenPlugin {
 
 // TODO split gen & render
 fn add_sun(
+	origin: Res<FloatingOriginSettings>,
 	mut commands: Commands,
 	mut meshes: ResMut<Assets<Mesh>>,
 	mut shader_material: ResMut<Assets<materials::Sun>>,
@@ -28,26 +32,29 @@ fn add_sun(
 		radius_in_sun_radius, radius_in_sun_radius as f32
 	);
 
-	let radius_scaled = radius_in_sun_radius * 1e5;
+	let radius = radius_in_sun_radius * units::SUN_RADIUS;
 
 	let sun_material = shader_material.add(materials::Sun {});
+
+	let (cell, translation) = origin.translation_to_grid::<i64>(DVec3::new(5.0 * radius, 0.0, 0.0));
 
 	commands.spawn((
 		MaterialMeshBundle {
 			mesh: meshes.add(
 				shape::Icosphere {
-					radius: radius_scaled as f32,
+					radius: radius as f32,
 					subdivisions: 20,
 				}
 				.try_into()
 				.expect("YYY how?...."),
 			),
 			material: sun_material,
-			transform: Transform::from_xyz(5. * radius_scaled as f32, 0.0, 0.0),
+			transform: Transform::from_translation(translation),
 			..default()
 		},
 		Mass(mass_in_sun_masses),
 		AstronomicalObjectType::Star,
+		cell,
 	));
 	println!("OK")
 }

@@ -17,13 +17,14 @@ fn fragment(in: FragmentInput) -> @location(0) vec4<f32> {
   let glow = pow(NdotV, .2); 
   let refl = reflect(-V, N);
   let noise_level_1 = snoise_vf4_(vec4(refl * 15.0, globals.time*0.1));
-  let noise_level_2 = snoise_vf4_(vec4(refl, globals.time*0.05 + 10.));
+  let noise_level_2 = snoise_vf4_(vec4(refl, globals.time*0.05 + 100.));
   let noise = clamp(noise_level_1*0.8 + noise_level_2*0.8, -1.0, 1.0);
   let alpha = pow((noise + 1.1)/2.0, 0.3);
 
   // TODO load from rust
-  var col = vec3(0.0,0.0,0.0);
-  col = mix(col, vec3(0.0, 0.0, 70.0)*alpha, glow);
+  let brightness = 7.0;
+  var col = vec3(0.0,0.4,1.0) * brightness;
+  col = mix(vec3(0.0,0.0,0.0), col*alpha, glow);
 
   return vec4(col, 1.0);
 }
