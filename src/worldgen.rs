@@ -26,22 +26,23 @@ fn add_sun(
 	mut shader_material: ResMut<Assets<materials::Sun>>,
 ) {
 	let mut rng = rand::rngs::StdRng::seed_from_u64(0);
-	let mass_in_sun_masses: f64 = rng.gen_range(0.6..1.4);
-	let radius_in_sun_radius = mass_in_sun_masses.powf(0.8); // TODO Aproximation
+	let mass_stellar: f64 = rng.gen_range(0.6..1.4);
+	let radius_stellar = units::calculations::stars::radius(mass_stellar); // TODO Aproximation
 
 	//println!(
 	//	"mass: {mass_in_sun_masses}   R: {} {}",
 	//	radius_in_sun_radius, radius_in_sun_radius as f32
 	//);
 
-	let radius = radius_in_sun_radius * units::SUN_RADIUS;
+	let radius = radius_stellar * units::SUN_RADIUS;
 
 	let sun_material = shader_material.add(materials::Sun {
 		color: Color::YELLOW,
-		luminosity: (mass_in_sun_masses.powf(4.0) * units::LUMINOSITY_MULTIPLAYER) as f32,
+		luminosity: (units::calculations::stars::luminosity(mass_stellar) * units::LUMINOSITY_MULTIPLAYER) as f32,
 	});
 
-	let (cell, translation) = origin.translation_to_grid::<i64>(DVec3::new(units::SUN_RADIUS * 5.0, 0.0, 0.0));
+	let (cell, translation) =
+		origin.translation_to_grid::<i64>(DVec3::new(units::SUN_RADIUS * 5.0, 0.0, -0.9 * units::SUN_RADIUS));
 
 	commands.spawn((
 		MaterialMeshBundle {
@@ -57,7 +58,7 @@ fn add_sun(
 			transform: Transform::from_translation(translation),
 			..default()
 		},
-		Mass(mass_in_sun_masses),
+		Mass(mass_stellar),
 		AstronomicalObjectType::Star,
 		cell,
 	));
@@ -77,7 +78,9 @@ fn update(
 ) {
 	let (_, mut mass, mesh_handle, material_handle) = objects.get_single_mut().expect("give me break");
 	mass.0 = world.sun_mass as f64;
-	let radius_in_sun_radius = mass.0.powf(0.8); // TODO Aproximation and extract function funtions
+	//let temperature = units::calculations::stars::temperature(mass.0);
+	let luminosity = units::calculations::stars::luminosity(mass.0);
+	let radius_in_sun_radius = units::calculations::stars::radius(mass.0); // TODO Aproximation and extract function funtions
 	let radius = radius_in_sun_radius * units::SUN_RADIUS;
 	let mesh = meshes.get_mut(mesh_handle).expect("yyy");
 	mesh.clone_from(
@@ -91,5 +94,5 @@ fn update(
 	let material = shader_materials
 		.get_mut(material_handle)
 		.expect("yyy say what #55");
-	material.luminosity = (mass.0.powf(4.0) * units::LUMINOSITY_MULTIPLAYER) as f32
+	material.luminosity = (luminosity * units::LUMINOSITY_MULTIPLAYER) as f32
 }

@@ -28,6 +28,9 @@ pub fn ui(
 		*is_initialized = true;
 	}
 	let ctx = contexts.ctx_mut();
+	let range = 0.5..=1.4; // habitable
+					   //let range = 0.2..=10.0; // sensible
+					   //let range = 0.179..=31.0; // computable - i am not respoinse for this
 
 	egui::SidePanel::right("side_panel")
 		.exact_width(window.resolution.width() * 0.25)
@@ -35,7 +38,7 @@ pub fn ui(
 		.show(ctx, |ui| {
 			ui.heading("Settings");
 			ui.horizontal(|ui| {
-				ui.add(egui::Slider::new(&mut ui_state.sun_mass, 0.6..=1.4).text("Star mass (solar masses)"));
+				ui.add(egui::Slider::new(&mut ui_state.sun_mass, range).text("Star mass (solar masses)"));
 			});
 		});
 
