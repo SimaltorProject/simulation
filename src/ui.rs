@@ -1,22 +1,32 @@
 use bevy::prelude::*;
 use bevy_egui::{egui, EguiContexts};
+use rand::{thread_rng, Rng, SeedableRng};
 
 use crate::resources::WorldRes;
 
-#[derive(Resource)]
+#[derive(Resource, Clone, PartialEq)]
 pub struct UiState {
-	sun_mass: f64,
+	global_seed_str: String,
+	invalid_seed: bool,
+	sun_mass_min: f64,
+	sun_mass_max: f64,
 }
 
 impl Default for UiState {
 	fn default() -> Self {
-		Self { sun_mass: 1.0 }
+		let mut rng = thread_rng();
+		Self {
+			global_seed_str: rng.gen::<u64>().to_string(),
+			invalid_seed: false,
+			sun_mass_min: 0.5,
+			sun_mass_max: 1.4,
+		}
 	}
 }
 
 pub fn ui(
 	mut ui_state: ResMut<UiState>,
-	//mut rendered_texture_id: Local<egui::TextureId>,
+	mut ui_previus_state: Local<UiState>,
 	mut is_initialized: Local<bool>,
 	mut contexts: EguiContexts,
 	windows: Query<&Window>,
@@ -28,87 +38,69 @@ pub fn ui(
 		*is_initialized = true;
 	}
 	let ctx = contexts.ctx_mut();
+	let mut rng = thread_rng();
 	//let range = 0.5..=1.4; // habitable
 
 	//let range = 0.2..=10.0; // sensible
 
-	let range = 0.179..=31.0; // computable - i am not respoinse for this
+	//let range = 0.179..=31.0; // computable - i am not respoinse for this
 
 	egui::SidePanel::right("side_panel")
 		.exact_width(window.resolution.width() * 0.25)
 		.resizable(false)
 		.show(ctx, |ui| {
 			ui.heading("Settings");
+			ui.add_space(10.0);
+			ui.heading("Star");
 			ui.horizontal(|ui| {
-				ui.add(egui::Slider::new(&mut ui_state.sun_mass, range).text("Star mass (solar masses)"));
+				if ui_state.invalid_seed {
+					ui.style_mut().visuals.extreme_bg_color = egui::Color32::DARK_RED;
+				}
+				ui.text_edit_singleline(&mut ui_state.global_seed_str);
+
+				if ui.button("R").clicked() {
+					let seed: u64 = rng.gen();
+					ui_state.global_seed_str = seed.to_string();
+				}
 			});
+
+			ui.label("Star mass (solar masses)");
+			ui_state.sun_mass_max = ui_state.sun_mass_max.max(ui_previus_state.sun_mass_min);
+			ui_state.sun_mass_min = ui_state.sun_mass_min.min(ui_previus_state.sun_mass_max);
+			ui.horizontal(|ui| {
+				ui.add(egui::Slider::new(&mut ui_state.sun_mass_min, 0.179..=31.0).text("min"));
+				if ui.button("R").clicked() {
+					ui_state.sun_mass_min = UiState::default().sun_mass_min;
+				}
+			});
+			ui.horizontal(|ui| {
+				ui.add(egui::Slider::new(&mut ui_state.sun_mass_max, 0.179..=31.0).text("max"));
+				if ui.button("R").clicked() {
+					ui_state.sun_mass_max = UiState::default().sun_mass_max;
+				}
+			});
+			ui.label(format!("Mass {:.2}", world.sun_mass));
 			ui.label(format!(
 				"Temperature {:.0}K",
-				crate::units::calculations::stars::temperature(ui_state.sun_mass)
+				crate::units::calculations::stars::temperature(world.sun_mass)
 			))
 		});
-
-	world.sun_mass = ui_state.sun_mass; // TODO redesign
+	if *ui_previus_state != *ui_state {
+		generate(ui_state.as_mut(), world.as_mut());
+	}
+	*ui_previus_state = ui_state.clone();
 }
-/*
-commands
-		.spawn(NodeBundle {
-			style: Style {
-				size: Size::width(Val::Percent(100.0)),
-				justify_content: JustifyContent::End,
-				align_items: AlignItems::Center,
-				..default()
-			},
-			..default()
-		})
-		.with_children(|parent| {
-			parent
-				.spawn(NodeBundle {
-					style: Style {
-						flex_direction: FlexDirection::Column,
-						justify_content: JustifyContent::Start,
-						align_items: AlignItems::Center,
-						padding: UiRect::all(Val::Percent(1.0)),
-						margin: UiRect {
-							right: Val::Percent(2.5),
-							..default()
-						},
-						size: Size::new(Val::Percent(20.0), Val::Percent(90.0)),
-						..default()
-					},
-					background_color: Color::rgba(0.051, 0.07, 0.09, 0.9).into(),
-					..default()
-				})
-				.with_children(|parent| {
-					parent.spawn((
-						TextBundle::from_section(
-							"Settings",
-							TextStyle {
-								font: font_handle,
-								font_size: 25.,
-								color: Color::WHITE,
-							},
-						)
-						.with_style(Style {
-							size: Size::height(Val::Px(25.)),
-							..default()
-						}),
-						Label,
-					));
-					parent
-						.spawn((
-							NodeBundle {
-								style: Style {
-									flex_direction: FlexDirection::Column,
-									max_size: Size::UNDEFINED,
-									align_items: AlignItems::Center,
-									..default()
-								},
-								..default()
-							},
-							//ScrollingList::default(),
-							//AccessibilityNode(NodeBuilder::new(Role::List)),
-						))
-						.with_children(|parent| {});
-				});
-		}); */
+
+pub fn generate(ui_state: &mut UiState, world: &mut WorldRes) {
+	println!("A");
+	let Ok(seed) = ui_state.global_seed_str.parse() else {
+		ui_state.invalid_seed = true;
+		return;
+	};
+	ui_state.invalid_seed = false;
+	world.seed_global = seed;
+	let mut rng = rand::rngs::StdRng::seed_from_u64(world.seed_global);
+	if ui_state.sun_mass_max >= ui_state.sun_mass_min {
+		world.sun_mass = rng.gen_range(ui_state.sun_mass_min..=ui_state.sun_mass_max); // TODO star distribution
+	}
+}

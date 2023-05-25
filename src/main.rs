@@ -1,10 +1,6 @@
-use bevy::input::mouse::MouseMotion;
+use bevy::math::DVec3;
 use bevy::window::CursorGrabMode;
 use bevy::{
-	a11y::{
-		accesskit::{NodeBuilder, Role},
-		AccessibilityNode,
-	},
 	core_pipeline::{bloom::BloomSettings, tonemapping::Tonemapping},
 	prelude::*,
 };
@@ -47,12 +43,19 @@ fn main() {
 		.run();
 }
 
-pub fn setup(mut commands: Commands, mut camera_input: ResMut<CameraInput>) {
+pub fn setup(
+	mut commands: Commands,
+	mut camera_input: ResMut<CameraInput>,
+	origin_settings: Res<big_space::FloatingOriginSettings>,
+) {
+	let (cell, translation) =
+		origin_settings.translation_to_grid::<i64>(DVec3::new(units::SUN_RADIUS * -5.0, 0.0, 0.9 * units::SUN_RADIUS));
+
 	commands.spawn((
 		Camera3dBundle {
 			camera: Camera { hdr: true, ..default() },
 			tonemapping: Tonemapping::TonyMcMapface,
-			transform: Transform::from_xyz(0.0, 0.0, 0.0).looking_at(Vec3::new(1., 0., 0.), Vec3::Y),
+			transform: Transform::from_translation(translation).looking_at(Vec3::new(1., 0., 0.), Vec3::Y),
 			..default()
 		},
 		BloomSettings {
@@ -60,7 +63,7 @@ pub fn setup(mut commands: Commands, mut camera_input: ResMut<CameraInput>) {
 			low_frequency_boost: 0.2,
 			..default()
 		},
-		GalacticGrid::new(0, 0, 0),
+		cell,
 		FloatingOrigin,
 		CameraController::default()
 			.with_max_speed(2e9)
@@ -71,7 +74,7 @@ pub fn setup(mut commands: Commands, mut camera_input: ResMut<CameraInput>) {
 
 fn grab_mouse(
 	mut windows: Query<&mut Window>,
-	mouse: Res<Input<MouseButton>>,
+	_mouse: Res<Input<MouseButton>>,
 	key: Res<Input<KeyCode>>,
 	mut camera_input: ResMut<CameraInput>,
 ) {
@@ -93,3 +96,5 @@ fn grab_mouse(
 		};
 	}
 }
+
+// TODO camera resizing

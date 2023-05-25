@@ -15,7 +15,10 @@ pub struct WorldGenPlugin;
 
 impl Plugin for WorldGenPlugin {
 	fn build(&self, app: &mut App) {
-		app.insert_resource(resources::WorldRes { sun_mass: 1.0 });
+		app.insert_resource(resources::WorldRes {
+			sun_mass: 1.0,
+			..default()
+		});
 		app.add_startup_system(gen);
 		app.add_system(update);
 	}
@@ -28,8 +31,7 @@ fn gen(
 	mut meshes: ResMut<Assets<Mesh>>,
 	mut shader_materials: ResMut<Assets<materials::Sun>>,
 ) {
-	let mut rng = rand::rngs::StdRng::seed_from_u64(0);
-	let mass_stellar: f64 = rng.gen_range(0.6..1.4);
+	let mass_stellar: f64 = 1.0;
 	let transform = Transform::default();
 
 	let entity = commands
@@ -38,10 +40,7 @@ fn gen(
 
 	commands.spawn(stars::gen(
 		mass_stellar,
-		(
-			origin.as_ref(),
-			DVec3::new(units::SUN_RADIUS * 5.0, 0.0, -0.9 * units::SUN_RADIUS),
-		),
+		(origin.as_ref(), DVec3::new(0.0, 0.0, 0.0)),
 		meshes.as_mut(),
 		shader_materials.as_mut(),
 		(&GalacticGrid::ZERO, &transform, entity),

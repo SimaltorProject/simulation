@@ -8,7 +8,7 @@ use crate::{components, materials, types, units};
 
 pub fn gen(
 	mass_stellar: f64,
-	(origin_serrings, pos): (&FloatingOriginSettings, DVec3),
+	(origin_settings, pos): (&FloatingOriginSettings, DVec3),
 	meshes: &mut Assets<Mesh>,
 	shader_materials: &mut Assets<materials::Sun>,
 	(mass_center_cell, mass_center_transform, mass_center_entity): (&types::GalacticGrid, &Transform, Entity),
@@ -33,7 +33,7 @@ pub fn gen(
 		luminosity: (units::calculations::stars::luminosity(mass_stellar) * units::LUMINOSITY_MULTIPLAYER) as f32,
 	});
 
-	let (cell, translation) = origin_serrings.translation_to_grid::<i64>(pos);
+	let (cell, translation) = origin_settings.translation_to_grid::<i64>(pos);
 
 	(
 		MaterialMeshBundle {
