@@ -1,12 +1,13 @@
 use crate::{
-	components::{AstronomicalObjectType, Mass},
+	components::{self, AstronomicalObjectType, Mass},
 	materials,
 	resources::{self, WorldRes},
+	types::GalacticGrid,
 	units,
 };
 use bevy::{math::DVec3, prelude::*};
 use big_space::FloatingOriginSettings;
-use rand::{thread_rng, Rng, SeedableRng};
+use rand::{Rng, SeedableRng};
 
 pub mod stars;
 
@@ -15,13 +16,13 @@ pub struct WorldGenPlugin;
 impl Plugin for WorldGenPlugin {
 	fn build(&self, app: &mut App) {
 		app.insert_resource(resources::WorldRes { sun_mass: 1.0 });
-		app.add_startup_system(add_sun);
+		app.add_startup_system(gen);
 		app.add_system(update);
 	}
 }
 
 // TODO split gen & render
-fn add_sun(
+fn gen(
 	origin: Res<FloatingOriginSettings>,
 	mut commands: Commands,
 	mut meshes: ResMut<Assets<Mesh>>,
@@ -29,6 +30,11 @@ fn add_sun(
 ) {
 	let mut rng = rand::rngs::StdRng::seed_from_u64(0);
 	let mass_stellar: f64 = rng.gen_range(0.6..1.4);
+	let transform = Transform::default();
+
+	let entity = commands
+		.spawn((components::CommonCenterOfMass {}, GalacticGrid::ZERO, transform))
+		.id();
 
 	commands.spawn(stars::gen(
 		mass_stellar,
@@ -38,6 +44,7 @@ fn add_sun(
 		),
 		meshes.as_mut(),
 		shader_materials.as_mut(),
+		(&GalacticGrid::ZERO, &transform, entity),
 	));
 	println!("OK")
 }

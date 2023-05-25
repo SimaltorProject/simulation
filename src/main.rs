@@ -57,13 +57,14 @@ pub fn setup(mut commands: Commands, mut camera_input: ResMut<CameraInput>) {
 		},
 		BloomSettings {
 			intensity: 0.3, // the default is 0.3
-			low_frequency_boost: 0.45,
+			low_frequency_boost: 0.2,
 			..default()
 		},
-		//FlyCam,
 		GalacticGrid::new(0, 0, 0),
 		FloatingOrigin,
-		CameraController::default().with_max_speed(10e35), // Built-in camera controller
+		CameraController::default()
+			.with_max_speed(2e9)
+			.with_slowing(false), // Built-in camera controller
 	));
 	camera_input.defaults_disabled = true;
 }

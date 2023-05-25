@@ -1,6 +1,6 @@
 use bevy::{
 	math::DVec3,
-	prelude::{default, shape, Assets, Color, Handle, MaterialMeshBundle, Mesh, Mut, Transform},
+	prelude::{default, shape, Assets, Color, Entity, Handle, MaterialMeshBundle, Mesh, Mut, Transform},
 };
 use big_space::FloatingOriginSettings;
 
@@ -8,9 +8,10 @@ use crate::{components, materials, types, units};
 
 pub fn gen(
 	mass_stellar: f64,
-	(origin, pos): (&FloatingOriginSettings, DVec3),
+	(origin_serrings, pos): (&FloatingOriginSettings, DVec3),
 	meshes: &mut Assets<Mesh>,
 	shader_materials: &mut Assets<materials::Sun>,
+	(mass_center_cell, mass_center_transform, mass_center_entity): (&types::GalacticGrid, &Transform, Entity),
 ) -> (
 	MaterialMeshBundle<materials::Sun>,
 	components::Mass,
@@ -32,7 +33,7 @@ pub fn gen(
 		luminosity: (units::calculations::stars::luminosity(mass_stellar) * units::LUMINOSITY_MULTIPLAYER) as f32,
 	});
 
-	let (cell, translation) = origin.translation_to_grid::<i64>(pos);
+	let (cell, translation) = origin_serrings.translation_to_grid::<i64>(pos);
 
 	(
 		MaterialMeshBundle {
@@ -45,12 +46,12 @@ pub fn gen(
 				.expect("YYY how?...."),
 			),
 			material: sun_material,
-			transform: Transform::from_translation(translation),
+			transform: Transform::from_translation(translation).with_translation(mass_center_transform.translation),
 			..default()
 		},
 		components::Mass(mass_stellar),
-		components::AstronomicalObjectType::Star,
-		cell,
+		components::AstronomicalObjectType::Star(mass_center_entity),
+		cell + *mass_center_cell,
 	)
 }
 
@@ -61,7 +62,7 @@ pub fn update(
 		&Handle<Mesh>,
 		&Handle<materials::Sun>,
 	),
-	(new_mass, new_age): (f64, f64),
+	(new_mass, _new_age): (f64, f64),
 	meshes: &mut Assets<Mesh>,
 	shader_materials: &mut Assets<materials::Sun>,
 ) -> () {

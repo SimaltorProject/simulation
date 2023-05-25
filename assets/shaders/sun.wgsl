@@ -24,6 +24,8 @@ struct FragmentInput {
 fn fragment(in: FragmentInput) -> @location(0) vec4<f32> {
   var N = normalize(in.world_normal);
   var V = normalize(view.world_position.xyz - in.world_position.xyz);
+  let dist = distance(view.world_position.xyz, in.world_position.xyz) * 0.0000001;
+  let d = 1000.0 / dist;
   let NdotV = max(dot(N,V), 0.0000000001);
   let glow = pow(NdotV, .2); 
   let refl = reflect(-V, N);
@@ -35,7 +37,7 @@ fn fragment(in: FragmentInput) -> @location(0) vec4<f32> {
   // TODO load from rust
   let brightness = 7.0;
   //var col = vec3(0.0,0.4,1.0) * brightness;
-  var col = material.color.xyz * luminosity;
+  var col = material.color.xyz * luminosity * d * d;
   col = mix(vec3(0.0,0.0,0.0), col*alpha, glow);
 
   return vec4(col, 1.0);

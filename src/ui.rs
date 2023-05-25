@@ -5,7 +5,7 @@ use crate::resources::WorldRes;
 
 #[derive(Resource)]
 pub struct UiState {
-	sun_mass: f32,
+	sun_mass: f64,
 }
 
 impl Default for UiState {
@@ -28,9 +28,11 @@ pub fn ui(
 		*is_initialized = true;
 	}
 	let ctx = contexts.ctx_mut();
-	let range = 0.5..=1.4; // habitable
-					   //let range = 0.2..=10.0; // sensible
-					   //let range = 0.179..=31.0; // computable - i am not respoinse for this
+	//let range = 0.5..=1.4; // habitable
+
+	//let range = 0.2..=10.0; // sensible
+
+	let range = 0.179..=31.0; // computable - i am not respoinse for this
 
 	egui::SidePanel::right("side_panel")
 		.exact_width(window.resolution.width() * 0.25)
@@ -40,6 +42,10 @@ pub fn ui(
 			ui.horizontal(|ui| {
 				ui.add(egui::Slider::new(&mut ui_state.sun_mass, range).text("Star mass (solar masses)"));
 			});
+			ui.label(format!(
+				"Temperature {:.0}K",
+				crate::units::calculations::stars::temperature(ui_state.sun_mass)
+			))
 		});
 
 	world.sun_mass = ui_state.sun_mass; // TODO redesign
