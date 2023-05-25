@@ -26,3 +26,41 @@ pub fn luminosity(mass: f64) -> f64 {
 		_ => todo!(),
 	}
 }
+
+pub fn color(temperature: f64) -> [f32; 3] {
+	let temperature = temperature / 100.0;
+	let red = if temperature <= 66.0 {
+		1.0
+	} else {
+		let mut r = temperature - 60.0;
+		r = 329.698727446 * r.powf(-0.1332047592);
+		r = r.clamp(0.0, 255.0);
+		r / 255.0
+	};
+
+	let green = if temperature <= 66.0 {
+		let mut g = 99.4708025861 * temperature.ln() - 161.1195681661;
+		g = g.clamp(0.0, 255.0);
+		g / 255.0
+	} else {
+		let mut g = temperature - 60.0;
+		g = 288.1221695283 * g.powf(-0.0755148492);
+		g = g.clamp(0.0, 255.0);
+		g / 255.0
+	};
+
+	let blue = if temperature >= 66.0 {
+		1.0
+	} else {
+		if temperature <= 19.0 {
+			0.0
+		} else {
+			let mut b = temperature - 10.0;
+			b = 138.5177312231 * b.ln() - 305.0447927307;
+			b = b.clamp(0.0, 255.0);
+			b / 255.0
+		}
+	};
+
+	[red as f32, green as f32, blue as f32]
+}
