@@ -2,14 +2,22 @@ use bevy::prelude::*;
 use bevy_egui::{egui, EguiContexts};
 use rand::{thread_rng, Rng, SeedableRng};
 
-use crate::resources::WorldRes;
+use crate::{
+	resources::WorldRes,
+	units::{calculations, SUN_DENSITY},
+};
 
 #[derive(Resource, Clone, PartialEq)]
-pub struct UiState {
+pub(crate) struct UiState {
 	global_seed_str: String,
 	invalid_seed: bool,
 	sun_mass_min: f64,
 	sun_mass_max: f64,
+	/*first_orbit_min: f64,
+	first_orbit_max: f64,
+	planets_min: u8,
+	planets_max: u8,
+	planet_chance_per_orbit: u8,*/
 }
 
 impl Default for UiState {
@@ -24,7 +32,7 @@ impl Default for UiState {
 	}
 }
 
-pub fn ui(
+pub(crate) fn ui(
 	mut ui_state: ResMut<UiState>,
 	mut ui_previus_state: Local<UiState>,
 	mut is_initialized: Local<bool>,
@@ -79,11 +87,18 @@ pub fn ui(
 					ui_state.sun_mass_max = UiState::default().sun_mass_max;
 				}
 			});
-			ui.label(format!("Mass {:.2}", world.sun_mass));
+			ui.label(format!("Mass {:.2}", *world.sun_mass));
 			ui.label(format!(
 				"Temperature {:.0}K",
-				crate::units::calculations::stars::temperature(world.sun_mass)
-			))
+				calculations::stars::temperature(*world.sun_mass)
+			));
+			let radius = calculations::stars::radius(*world.sun_mass);
+			ui.label(format!("Radius {:.2}", radius));
+			let volume = calculations::stars::volume(radius);
+			ui.label(format!(
+				"Average density {:.2} g/cm^3",
+				((*world.sun_mass) / volume) * SUN_DENSITY * 0.001
+			));
 		});
 	if *ui_previus_state != *ui_state {
 		generate(ui_state.as_mut(), world.as_mut());
@@ -91,16 +106,17 @@ pub fn ui(
 	*ui_previus_state = ui_state.clone();
 }
 
-pub fn generate(ui_state: &mut UiState, world: &mut WorldRes) {
-	println!("A");
+pub(crate) fn generate(ui_state: &mut UiState, world: &mut WorldRes) {
 	let Ok(seed) = ui_state.global_seed_str.parse() else {
 		ui_state.invalid_seed = true;
 		return;
 	};
 	ui_state.invalid_seed = false;
-	world.seed_global = seed;
-	let mut rng = rand::rngs::StdRng::seed_from_u64(world.seed_global);
+	world.seed_global.update(seed);
+	let mut rng = rand::rngs::StdRng::seed_from_u64(*world.seed_global);
 	if ui_state.sun_mass_max >= ui_state.sun_mass_min {
-		world.sun_mass = rng.gen_range(ui_state.sun_mass_min..=ui_state.sun_mass_max); // TODO star distribution
+		world
+			.sun_mass
+			.update(rng.gen_range(ui_state.sun_mass_min..=ui_state.sun_mass_max)); // TODO star distribution
 	}
 }

@@ -1,3 +1,3 @@
 use big_space::GridCell;
 
-pub type GalacticGrid = GridCell<i64>;
+pub(crate) type GalacticGrid = GridCell<i64>;

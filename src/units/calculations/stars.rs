@@ -1,4 +1,4 @@
-pub fn temperature(mass: f64) -> f64 {
+pub(crate) fn temperature(mass: f64) -> f64 {
 	if mass < 1.5 {
 		5778.0 * (luminosity(mass).sqrt() / radius(mass))
 	} else {
@@ -6,7 +6,7 @@ pub fn temperature(mass: f64) -> f64 {
 	}
 }
 
-pub fn radius(mass: f64) -> f64 {
+pub(crate) fn radius(mass: f64) -> f64 {
 	if mass <= 1.5 {
 		0.438 * mass.powf(2.0) + 0.479 * mass + 0.075
 	} else {
@@ -14,7 +14,7 @@ pub fn radius(mass: f64) -> f64 {
 	}
 }
 
-pub fn luminosity(mass: f64) -> f64 {
+pub(crate) fn luminosity(mass: f64) -> f64 {
 	match mass {
 		x if x < 0.179 => todo!(),
 		x if x <= 0.45 => 10.0f64.powf(2.028 * x.log10() - 0.976),
@@ -27,7 +27,12 @@ pub fn luminosity(mass: f64) -> f64 {
 	}
 }
 
-pub fn color(temperature: f64) -> [f32; 3] {
+// In suns volumes
+pub(crate) fn volume(radius: f64) -> f64 {
+	radius.powf(3.0)
+}
+
+pub(crate) fn color(temperature: f64) -> [f32; 3] {
 	let temperature = temperature / 100.0;
 	let red = if temperature <= 66.0 {
 		1.0

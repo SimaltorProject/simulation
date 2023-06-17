@@ -6,7 +6,7 @@ use big_space::FloatingOriginSettings;
 
 use crate::{components, materials, types, units};
 
-pub fn gen(
+pub(crate) fn gen(
 	mass_stellar: f64,
 	(origin_settings, pos): (&FloatingOriginSettings, DVec3),
 	meshes: &mut Assets<Mesh>,
@@ -55,7 +55,7 @@ pub fn gen(
 	)
 }
 
-pub fn update(
+pub(crate) fn update(
 	(_, mut mass, mesh_handle, material_handle): (
 		&components::AstronomicalObjectType,
 		Mut<'_, components::Mass>,
