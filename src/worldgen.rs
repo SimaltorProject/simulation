@@ -64,52 +64,28 @@ fn gen(
 			(&GalacticGrid::ZERO, &transform, entity),
 		))
 		.id();
-	let mut planet_entity = Entity::PLACEHOLDER;
 
 	world.orbits.iter().for_each(|orbit| {
 		let object = &orbit.orbiting_object;
 		match object {
-			resources::OrbitingObject::Planet { radius } => {
-				planet_entity = commands
-					.spawn(planet::gen(
-						Orbiting {
-							center_of_mass: sun_entity,
-							starting_angle: *orbit.starting_angle,
-							eccentricity: *orbit.eccentricity,
-							semi_major_axis: *orbit.semi_major_axis,
-							_inclanation: *orbit._inclanation,
-							_argument_of_semi_major_axis: *orbit._argument_of_semi_major_axis,
-							timer: Timer::from_seconds(4.7, TimerMode::Repeating),
-						},
-						**radius,
-						(origin.as_ref(), DVec3::new(*orbit.semi_major_axis, 0.0, 0.0)),
-						meshes.as_mut(),
-						materials.as_mut(),
-						(&GalacticGrid::ZERO, &transform, entity),
-					))
-					.id()
-			}
+			resources::OrbitingObject::Planet { radius } => commands.spawn(planet::gen(
+				Orbiting {
+					center_of_mass: sun_entity,
+					starting_angle: *orbit.starting_angle,
+					eccentricity: *orbit.eccentricity,
+					semi_major_axis: *orbit.semi_major_axis,
+					_inclanation: *orbit._inclanation,
+					_argument_of_semi_major_axis: *orbit._argument_of_semi_major_axis,
+					timer: Timer::from_seconds(4.7, TimerMode::Repeating),
+				},
+				**radius,
+				(origin.as_ref(), DVec3::new(*orbit.semi_major_axis, 0.0, 0.0)),
+				meshes.as_mut(),
+				materials.as_mut(),
+				(&GalacticGrid::ZERO, &transform, entity),
+			)),
 		};
 	});
-
-	commands.spawn(planet::gen(
-		Orbiting {
-			center_of_mass: planet_entity,
-			starting_angle: 0.0,
-			eccentricity: 0.5,
-			semi_major_axis: 149_600_000_000.0 * 0.5,
-			_inclanation: 0.0,
-			_argument_of_semi_major_axis: 0.0,
-			timer: Timer::from_seconds(1.2, TimerMode::Repeating),
-		},
-		6_371_000.0 * 200.0,
-		(origin.as_ref(), DVec3::new(149_600_000_000.0 * 0.5, 0.0, 0.0)),
-		meshes.as_mut(),
-		materials.as_mut(),
-		(&GalacticGrid::ZERO, &transform, entity),
-	));
-
-	println!("OK")
 }
 
 fn update(
