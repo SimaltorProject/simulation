@@ -6,9 +6,9 @@ edition = "2021"
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
 [dependencies]
-bevy = { version = "0.10.1", features = [] }
-bevy_egui = "0.20.3"
-big_space = "0.2.0"
+bevy = { version = "0.11", features = [] }
+bevy_egui = "0.21"
+big_space = "0.3"
 rand = "0.8.5"
 
 
@@ -17,3 +17,5 @@ opt-level = 1
 
 [profile.dev.package."*"]
 opt-level = 3
+
+

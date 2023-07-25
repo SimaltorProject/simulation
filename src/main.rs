@@ -1,15 +1,13 @@
-use std::ops::Mul;
-
+use bevy::asset::ChangeWatcher;
 use bevy::math::DVec3;
 use bevy::render::camera::Viewport;
 use bevy::window::CursorGrabMode;
-use bevy::{
-	core_pipeline::{bloom::BloomSettings, tonemapping::Tonemapping},
-	prelude::*,
-};
+use bevy::{core_pipeline::bloom::BloomSettings, prelude::*};
 use bevy_egui::EguiPlugin;
 use big_space::camera::CameraInput;
 use big_space::{camera::CameraController, FloatingOrigin, FloatingOriginPlugin};
+use core::time::Duration;
+use std::ops::Mul;
 
 mod cd;
 mod components;
@@ -28,22 +26,22 @@ fn main() {
 		.add_plugins(
 			DefaultPlugins
 				.set(AssetPlugin {
-					watch_for_changes: true,
+					watch_for_changes: ChangeWatcher::with_delay(Duration::from_millis(200)),
 					..Default::default()
 				})
 				.build()
 				.disable::<TransformPlugin>(),
 		)
-		.add_plugin(EguiPlugin)
-		.add_plugin(FloatingOriginPlugin::<i64>::new(1_000.0, 1.0))
-		.add_plugin(big_space::debug::FloatingOriginDebugPlugin::<i64>::default())
-		.add_plugin(big_space::camera::CameraControllerPlugin::<i64>::default())
-		.add_plugin(MaterialPlugin::<materials::Sun>::default())
-		.add_plugin(worldgen::WorldGenPlugin)
-		.add_system(grab_mouse)
-		.add_system(camera_resize)
-		.add_startup_system(setup)
-		.add_system(ui::ui)
+		.add_plugins(EguiPlugin)
+		.add_plugins(FloatingOriginPlugin::<i64>::new(1_000.0, 1.0))
+		.add_plugins(big_space::debug::FloatingOriginDebugPlugin::<i64>::default())
+		.add_plugins(big_space::camera::CameraControllerPlugin::<i64>::default())
+		.add_plugins(MaterialPlugin::<materials::Sun>::default())
+		.add_plugins(worldgen::WorldGenPlugin)
+		.add_systems(Startup, setup)
+		.add_systems(Update, grab_mouse)
+		.add_systems(Update, camera_resize)
+		.add_systems(Update, ui::ui)
 		.run();
 }
 
@@ -54,10 +52,8 @@ pub(crate) fn setup(
 	origin_settings: Res<big_space::FloatingOriginSettings>,
 ) {
 	//let (cell, translation) = origin_settings.translation_to_grid::<i64>(DVec3::new(units::SUN_RADIUS * -5.0, 0.0, 0.9 * units::SUN_RADIUS));
-	let (cell, translation) = origin_settings.translation_to_grid::<i64>(DVec3::new(0.0, 140_000_000_000.0 * 2.8, 0.0));
+	let (cell, translation) = origin_settings.translation_to_grid::<i64>(DVec3::new(0.0, 0.0, 151_600_000_000.0));
 	let window = windows.single();
-
-	println!("res: {:?}", window.resolution);
 
 	commands.spawn((
 		Camera3dBundle {
@@ -72,7 +68,34 @@ pub(crate) fn setup(
 				}),
 				..default()
 			},
-			tonemapping: Tonemapping::TonyMcMapface,
+			transform: Transform::from_translation(translation).looking_at(Vec3::ZERO, Vec3::Y),
+			..default()
+		},
+		BloomSettings {
+			intensity: 0.3, // the default is 0.3
+			low_frequency_boost: 0.2,
+			..default()
+		},
+		cell,
+		FloatingOrigin,
+		CameraController::default()
+			.with_max_speed(2.0)
+			.with_slowing(true), // Built-in camera controller
+	));
+
+	/*commands.spawn((
+		Camera3dBundle {
+			camera: Camera {
+				hdr: true,
+				viewport: Some(Viewport {
+					physical_size: UVec2::new(
+						(window.physical_width() as f64).mul(0.75).ceil() as u32, //#![feature(int_roundings)] div_ceil
+						window.physical_height(),
+					),
+					..default()
+				}),
+				..default()
+			},
 			transform: Transform::from_translation(translation).looking_at(Vec3::new(0.01, -1., 0.), Vec3::Y),
 			..default()
 		},
@@ -86,7 +109,7 @@ pub(crate) fn setup(
 		CameraController::default()
 			.with_max_speed(2e9)
 			.with_slowing(true), // Built-in camera controller
-	));
+	));*/
 	camera_input.defaults_disabled = true;
 }
 

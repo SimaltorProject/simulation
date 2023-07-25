@@ -1,5 +1,7 @@
-#import bevy_pbr::mesh_view_bindings
 #import bevy_pbr::mesh_bindings
+#import bevy_pbr::mesh_view_bindings globals
+#import bevy_pbr::mesh_view_bindings view
+#import bevy_pbr::mesh_vertex_output MeshVertexOutput
 
 const PI = 3.14159265358979323846264338327950288;
 
@@ -13,15 +15,8 @@ var<uniform> material: CustomMaterial;
 var<uniform> luminosity: f32;
 
 
-
-struct FragmentInput {
-  @builtin(front_facing) is_front: bool,
-  @builtin(position) frag_coord: vec4<f32>,
-  #import bevy_pbr::mesh_vertex_output
-}
-
 @fragment
-fn fragment(in: FragmentInput) -> @location(0) vec4<f32> {
+fn fragment(in: MeshVertexOutput) -> @location(0) vec4<f32> {
   var N = normalize(in.world_normal);
   var V = normalize(view.world_position.xyz - in.world_position.xyz);
   let dist = distance(view.world_position.xyz, in.world_position.xyz) * 0.0000001;

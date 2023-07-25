@@ -34,7 +34,7 @@ use std::ops::{Deref, DerefMut};
 /// Cd: Change Detection
 ///
 /// Start by creating one with [`new()`](Cd::new()).
-pub(crate) struct Cd<T> {
+pub struct Cd<T> {
 	data: T,
 	changed: bool,
 }
@@ -47,7 +47,7 @@ impl<T> Cd<T> {
 	/// use changed::Cd;
 	/// let cd = Cd::new(5);
 	/// ```
-	pub(crate) fn new(data: T) -> Cd<T> {
+	pub fn new(data: T) -> Cd<T> {
 		Cd { data, changed: false }
 	}
 
@@ -58,7 +58,7 @@ impl<T> Cd<T> {
 	/// let cd = Cd::new_true(5);
 	/// assert!(cd.changed());
 	/// ```
-	pub(crate) fn new_true(data: T) -> Cd<T> {
+	pub fn new_true(data: T) -> Cd<T> {
 		Cd { data, changed: true }
 	}
 
@@ -69,7 +69,7 @@ impl<T> Cd<T> {
 	/// cd.reset();
 	/// assert!(!cd.changed());
 	/// ```
-	pub(crate) fn reset(&mut self) {
+	pub fn reset(&mut self) {
 		self.changed = false;
 	}
 
@@ -82,7 +82,7 @@ impl<T> Cd<T> {
 	/// // Error: cd has been moved.
 	/// // cd.changed();
 	/// ```
-	pub(crate) fn take(self) -> T {
+	pub fn take(self) -> T {
 		self.data
 	}
 
@@ -94,7 +94,7 @@ impl<T> Cd<T> {
 	/// *cd += 5;
 	/// assert!(cd.changed());
 	/// ```
-	pub(crate) fn changed(&self) -> bool {
+	pub fn changed(&self) -> bool {
 		self.changed
 	}
 

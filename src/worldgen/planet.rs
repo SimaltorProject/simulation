@@ -3,7 +3,7 @@ use big_space::FloatingOriginSettings;
 
 use crate::{
 	components::{self, Orbiting},
-	materials, types,
+	types,
 };
 
 pub(crate) fn gen(
@@ -12,7 +12,7 @@ pub(crate) fn gen(
 	(origin_settings, pos): (&FloatingOriginSettings, DVec3),
 	meshes: &mut Assets<Mesh>,
 	material: &mut Assets<StandardMaterial>,
-	(mass_center_cell, mass_center_transform, mass_center_entity): (&types::GalacticGrid, &Transform, Entity),
+	(mass_center_cell, mass_center_transform): (&types::GalacticGrid, &Transform),
 ) -> (
 	MaterialMeshBundle<StandardMaterial>,
 	components::Mass,
