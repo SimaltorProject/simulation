@@ -23,14 +23,14 @@ impl Plugin for WorldGenPlugin {
 		app.insert_resource(resources::WorldRes {
 			sun_mass: Cd::new(1.0),
 			orbits: vec![Orbit {
-				argument_of_semi_major_axis: Cd::new(PI * 1.5),
-				phase_angle: Cd::new(PI * 0.5),
-				eccentricity: Cd::new(0.6),
+				argument_of_semi_major_axis: Cd::new(PI * 0.0),
+				phase_angle: Cd::new(PI),
+				eccentricity: Cd::new(0.4),
 				semi_major_axis: Cd::new(149_600_000_000.0),
 				orbiting_object: resources::OrbitingObject::Planet {
 					radius: Cd::new(6_371_000.0 * 500.0),
 				},
-				inclanation: Cd::new(0.2 * PI),
+				inclanation: Cd::new(0.02 * PI),
 				..default()
 			}],
 			..default()
@@ -76,7 +76,7 @@ fn gen(
 					semi_major_axis: *orbit.semi_major_axis,
 					inclanation: *orbit.inclanation,
 					argument_of_semi_major_axis: *orbit.argument_of_semi_major_axis,
-					timer: Timer::from_seconds(5.0, TimerMode::Repeating),
+					timer: Timer::from_seconds(500.0, TimerMode::Repeating),
 				},
 				**radius,
 				(origin.as_ref(), DVec3::new(*orbit.semi_major_axis, 0.0, 0.0)),
@@ -108,4 +108,31 @@ fn update(
 		)
 	}
 	world.sun_mass.reset();
+}
+
+pub(crate) fn draw_orbit(orbiting_querry: Query<(Entity, &Transform, &GalacticGrid, Option<&Orbiting>)>) {
+	let mut orbiting_orbited_pairs: Vec<(Entity, Entity)> = vec![];
+	orbiting_querry.for_each(|orbiting_object| {
+		let (entity, transform, object_cell, orbiting_option) = orbiting_object;
+		if let Some(orbiting) = orbiting_option {
+			orbiting_orbited_pairs.push((entity, orbiting.center_of_mass));
+		}
+	});
+
+	orbiting_orbited_pairs.iter().for_each(|pair| {
+		let orbited = orbiting_querry.get(pair.1);
+		if pair.0 == pair.1 {
+			return;
+		}
+		// if above ensures that unsafe do not violates memory safety
+		let orbiting = unsafe { orbiting_querry.get_unchecked(pair.0) };
+		match (orbiting, orbited) {
+			(Ok(orbiting), Ok(orbited)) => {
+				//todo draw
+			}
+			_ => todo!(),
+		}
+	});
+
+	//println!("mean_anomaly: {mean_anomaly}  eccentric_anomaly: {eccentric_anomaly} ")
 }

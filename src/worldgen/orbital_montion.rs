@@ -10,7 +10,6 @@ use crate::{components::Orbiting, types::GalacticGrid};
 
 pub(crate) fn update_pos(
 	origin: Res<FloatingOriginSettings>,
-	//world: Res<WorldRes>,
 	mut orbiting_querry: Query<(Entity, &mut Transform, &mut GalacticGrid, Option<&mut Orbiting>)>,
 	time: Res<Time>,
 ) {
