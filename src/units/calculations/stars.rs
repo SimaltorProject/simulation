@@ -56,15 +56,13 @@ pub(crate) fn color(temperature: f64) -> [f32; 3] {
 
 	let blue = if temperature >= 66.0 {
 		1.0
+	} else if temperature <= 19.0 {
+		0.0
 	} else {
-		if temperature <= 19.0 {
-			0.0
-		} else {
-			let mut b = temperature - 10.0;
-			b = 138.5177312231 * b.ln() - 305.0447927307;
-			b = b.clamp(0.0, 255.0);
-			b / 255.0
-		}
+		let mut b = temperature - 10.0;
+		b = 138.5177312231 * b.ln() - 305.0447927307;
+		b = b.clamp(0.0, 255.0);
+		b / 255.0
 	};
 
 	[red as f32, green as f32, blue as f32]

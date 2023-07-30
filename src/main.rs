@@ -1,10 +1,10 @@
 use bevy::asset::ChangeWatcher;
+use bevy::core_pipeline::clear_color::ClearColorConfig;
 use bevy::math::DVec3;
 use bevy::render::camera::Viewport;
-use bevy::window::CursorGrabMode;
+use bevy::window::{CursorGrabMode, WindowResized};
 use bevy::{core_pipeline::bloom::BloomSettings, prelude::*};
 use bevy_egui::EguiPlugin;
-use bevy_prototype_debug_lines::DebugLinesPlugin;
 use big_space::camera::CameraInput;
 use big_space::{camera::CameraController, FloatingOrigin};
 use core::time::Duration;
@@ -81,21 +81,51 @@ pub(crate) fn setup(
 			.with_max_speed(2.0)
 			.with_slowing(true), // Built-in camera controller
 	));
+	println!(
+		"{:?} {:?}",
+		(window.physical_width() as f32).mul(0.5),
+		(window.physical_height() as f32).mul(-0.5)
+	);
+	commands.spawn((Camera2dBundle {
+		camera_2d: Camera2d {
+			clear_color: ClearColorConfig::None,
+		},
+		camera: Camera {
+			hdr: true,
+			order: 1,
+			viewport: Some(Viewport {
+				physical_size: UVec2::new(
+					(window.physical_width() as f64).mul(0.75).ceil() as u32, //#![feature(int_roundings)] div_ceil
+					window.physical_height(),
+				),
+				..default()
+			}),
+			..default()
+		},
+		transform: Transform::from_translation(Vec3::from_array([0.0, 0.0, 1.0])),
+		..default()
+	},));
 
 	camera_input.defaults_disabled = true;
 }
 
-fn camera_resize(windows: Query<&Window>, mut cameras: Query<&mut Camera>) {
-	let window = windows.single();
-	let mut camera = cameras.single_mut();
-	let size = UVec2::new(
-		(window.physical_width() as f64).mul(0.75).ceil() as u32, //#![feature(int_roundings)] div_ceil
-		window.physical_height(),
-	);
-	camera
-		.viewport
-		.as_mut()
-		.map(|v| v.physical_size.apply(&size));
+fn camera_resize(
+	mut resize_events: EventReader<WindowResized>,
+	windows: Query<&Window>,
+	mut cameras: Query<&mut Camera>,
+) {
+	for resize_event in resize_events.iter() {
+		let window = windows.get(resize_event.window).unwrap();
+		cameras.for_each_mut(|mut camera| {
+			let size = UVec2::new(
+				(window.physical_width() as f64).mul(0.75).ceil() as u32, //#![feature(int_roundings)] div_ceil
+				window.physical_height(),
+			);
+			if let Some(v) = camera.viewport.as_mut() {
+				v.physical_size.apply(&size)
+			}
+		});
+	}
 }
 
 fn grab_mouse(

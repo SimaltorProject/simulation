@@ -28,12 +28,13 @@
 //! so it is entirely possible to call `deref_mut()` and not change it, giving a false positive.
 //!
 //! Along with that, there is a function to mutate a `Cd` without tripping change detection.
-
+#![allow(dead_code)]
 use std::ops::{Deref, DerefMut};
 
 /// Cd: Change Detection
 ///
 /// Start by creating one with [`new()`](Cd::new()).
+#[derive(Debug)]
 pub struct Cd<T> {
 	data: T,
 	changed: bool,

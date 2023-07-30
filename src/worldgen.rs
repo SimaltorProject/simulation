@@ -1,4 +1,4 @@
-use std::f64::consts::PI;
+use std::{f64::consts::PI, ops::Mul};
 
 use crate::{
 	cd::Cd,
@@ -7,8 +7,8 @@ use crate::{
 	resources::{self, Orbit, WorldRes},
 	types::GalacticGrid,
 };
-use bevy::{math::DVec3, prelude::*};
-use big_space::FloatingOriginSettings;
+use bevy::{math::DVec3, prelude::*, sprite::MaterialMesh2dBundle};
+use big_space::{FloatingOrigin, FloatingOriginSettings};
 
 use orbital_montion::update_pos;
 
@@ -31,12 +31,11 @@ impl Plugin for WorldGenPlugin {
 					radius: Cd::new(6_371_000.0 * 500.0),
 				},
 				inclanation: Cd::new(0.02 * PI),
-				..default()
 			}],
 			..default()
 		});
 		app.add_systems(Startup, gen);
-		app.add_systems(Update, (update, update_pos));
+		app.add_systems(Update, (update, update_pos, draw_orbit_and_object));
 	}
 }
 
@@ -110,12 +109,49 @@ fn update(
 	world.sun_mass.reset();
 }
 
-pub(crate) fn draw_orbit(orbiting_querry: Query<(Entity, &Transform, &GalacticGrid, Option<&Orbiting>)>) {
+#[allow(clippy::type_complexity)]
+pub(crate) fn draw_orbit_and_object(
+	windows: Query<&Window>,
+	mut commands: Commands,
+	mut meshes: ResMut<Assets<Mesh>>,
+	mut materials: ResMut<Assets<ColorMaterial>>,
+	orbiting_querry: Query<(
+		Entity,
+		&Transform,
+		&GlobalTransform,
+		&GalacticGrid,
+		Option<&Orbiting>,
+		&AstronomicalObjectType,
+	)>,
+	main_cameras: Query<(&Camera, &GlobalTransform), With<FloatingOrigin>>,
+) {
+	let window = windows.single();
+	let main_camera = main_cameras
+		.get_single()
+		.expect("There should be onnly one");
 	let mut orbiting_orbited_pairs: Vec<(Entity, Entity)> = vec![];
+	let overlay_size = Vec2::new(window.width().mul(0.75), window.height());
+
 	orbiting_querry.for_each(|orbiting_object| {
-		let (entity, transform, object_cell, orbiting_option) = orbiting_object;
+		let (entity, _, global_tranform, _, orbiting_option, _) = orbiting_object;
 		if let Some(orbiting) = orbiting_option {
 			orbiting_orbited_pairs.push((entity, orbiting.center_of_mass));
+		}
+		if let Some(pos) = main_camera
+			.0
+			.world_to_ndc(main_camera.1, global_tranform.translation())
+		{
+			let radius = 2.;
+			commands.spawn(MaterialMesh2dBundle {
+				mesh: meshes.add(shape::Circle::new(radius).into()).into(),
+				material: materials.add(ColorMaterial::from(Color::PURPLE)),
+				transform: Transform::from_translation(Vec3::new(
+					overlay_size.x.mul(pos.x * 0.5),
+					overlay_size.y.mul(pos.y * 0.5),
+					0.,
+				)),
+				..default()
+			});
 		}
 	});
 
@@ -127,7 +163,7 @@ pub(crate) fn draw_orbit(orbiting_querry: Query<(Entity, &Transform, &GalacticGr
 		// if above ensures that unsafe do not violates memory safety
 		let orbiting = unsafe { orbiting_querry.get_unchecked(pair.0) };
 		match (orbiting, orbited) {
-			(Ok(orbiting), Ok(orbited)) => {
+			(Ok(_orbiting), Ok(_orbited)) => {
 				//todo draw
 			}
 			_ => todo!(),

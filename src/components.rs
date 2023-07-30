@@ -1,18 +1,18 @@
 use bevy::prelude::*;
 
-#[derive(Component, PartialEq)]
+#[derive(Component, PartialEq, Debug)]
 pub(crate) enum AstronomicalObjectType {
 	Star(Entity),
 	Planet,
 }
 
-#[derive(Component)]
+#[derive(Component, Debug)]
 pub(crate) struct Mass(pub(crate) f64);
 
-#[derive(Component)]
+#[derive(Component, Debug)]
 pub(crate) struct CommonCenterOfMass {}
 
-#[derive(Component)]
+#[derive(Component, Debug)]
 pub(crate) struct Orbiting {
 	pub center_of_mass: Entity,
 	pub phase_angle: f64,

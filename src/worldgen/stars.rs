@@ -65,7 +65,7 @@ pub(crate) fn update(
 	(new_mass, _new_age): (f64, f64),
 	meshes: &mut Assets<Mesh>,
 	shader_materials: &mut Assets<materials::Sun>,
-) -> () {
+) {
 	mass.0 = new_mass;
 	let temperature = units::calculations::stars::temperature(mass.0);
 	let luminosity = units::calculations::stars::luminosity(mass.0);
